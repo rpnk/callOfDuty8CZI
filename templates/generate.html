@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Генерація документа</title>
+    <style>
+        .button { padding: 5px 10px; margin: 5px; }
+        label { display: block; margin: 5px 0; }
+        .item { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Генерація наказу</h2>
+    <form method="POST">
+        <label>Дата: <input type="text" name="date" placeholder="“___” _________ 20___" required></label>
+        <label>Номер наказу: <input type="text" name="order_number" placeholder="№____-НР" required></label>
+        
+        <div class="item">
+            <label>Військова частина:</label>
+            <select name="unit_id" required>
+                {% for unit in unit_data %}
+                    <option value="{{ unit[0] }}">{{ unit[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <h3>Включити пункти:</h3>
+        <div class="item">
+            <label><input type="checkbox" name="duty_officer" checked> Черговий частини</label>
+            <select name="duty_officer_id">
+                {% for item in position_rank_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="assistant_duty" checked> Помічник чергового частини</label>
+            <select name="assistant_duty_id">
+                {% for item in position_rank_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="guard_chief" checked> Начальник варти</label>
+            <select name="guard_chief_id">
+                {% for item in position_rank_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="park_duty" checked> Черговий парку</label>
+            <select name="park_duty_id">
+                {% for item in position_rank_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="duty_subunit" checked> Черговий підрозділ</label>
+            <select name="duty_subunit_id">
+                {% for item in subunit_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="subunit_duty" checked> Добовий наряд від підрозділу</label>
+            <select name="subunit_duty_id">
+                {% for item in subunit_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="work_duty" checked> Наряд на роботи</label>
+            <select name="work_duty_id">
+                {% for item in work_duration_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label><input type="checkbox" name="weapon_ammo" checked> Зброя і боєприпаси</label>
+            <select name="weapon_ammo_id">
+                {% for item in weapon_ammo_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="item">
+            <label>Командир:</label>
+            <select name="commander_id">
+                {% for item in commander_data %}
+                    <option value="{{ item[0] }}">{{ item[1] }} {{ item[2] }} (Частина: {{ item[3] }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="button">Сгенерувати</button>
+    </form>
+    <a href="/" class="button">Назад</a>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ column_name }}</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        .button { padding: 5px 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>{{ column_name }}</h2>
+    
+    <!-- Форма для добавления/редактирования -->
+    <form method="POST">
+        <input type="hidden" name="id" id="id">
+        {% if table_name == 'commander' %}
+            <label>Звання командира:</label>
+            <input type="text" name="rank" id="rank" placeholder="Введіть звання (наприклад, Полковник)" required>
+            <label>Ім’я командира:</label>
+            <input type="text" name="name" id="name" placeholder="Введіть ім’я (наприклад, Петро Сидоров)" required>
+            <label>Назва частини:</label>
+            <select name="unit_id" id="unit_id" required>
+                {% for unit in unit_names %}
+                    <option value="{{ unit[0] }}">{{ unit[1] }}</option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <input type="text" name="value" id="value" placeholder="Введіть значення" required>
+        {% endif %}
+        <button type="submit">Зберегти</button>
+    </form>
+
+    <!-- Таблица с данными -->
+    <table>
+        <tr>
+            <th>ID</th>
+            {% if table_name == 'commander' %}
+                <th>Звання</th>
+                <th>Ім’я</th>
+                <th>Назва частини</th>
+            {% else %}
+                <th>{{ column_name }}</th>
+            {% endif %}
+            <th>Дії</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            {% if table_name == 'commander' %}
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+            {% else %}
+                <td>{{ row[1] }}</td>
+            {% endif %}
+            <td>
+                <button onclick="editRow({{ row[0] }}{% if table_name == 'commander' %}, '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}'{% else %}, '{{ row[1] }}'{% endif %})">Редагувати</button>
+                <a href="/delete/{{ table_name }}/{{ row[0] }}" onclick="return confirm('Видалити?')">Видалити</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a href="/" class="button">Назад</a>
+
+    <script>
+    function editRow(id{% if table_name == 'commander' %}, rank, name, unit_name{% else %}, value{% endif %}) {
+        document.getElementById('id').value = id;
+        {% if table_name == 'commander' %}
+            document.getElementById('rank').value = rank;
+            document.getElementById('name').value = name;
+            document.getElementById('unit_id').value = unit_name;
+        {% else %}
+            document.getElementById('value').value = value;
+        {% endif %}
+    }
+    </script>
+</body>
+</html>

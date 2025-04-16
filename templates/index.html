@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Вибір таблиці</title>
+    <style>
+        .button { padding: 10px; margin: 5px; display: block; text-decoration: none; color: black; border: 1px solid black; }
+    </style>
+</head>
+<body>
+    <h2>Оберіть таблицю</h2>
+    {% for table in tables %}
+        <a href="/table/{{ table[0] }}" class="button">{{ table[1] }}</a>
+    {% endfor %}
+    <a href="/generate" class="button">Сгенерувати документ</a>
+</body>
+</html>
