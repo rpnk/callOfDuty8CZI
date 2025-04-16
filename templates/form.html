@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Генерація наказу</title>
+    <style>
+        .template-text { white-space: pre-wrap; font-family: Arial, sans-serif; }
+        .punkt-block { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .punkt-fields { margin-left: 20px; }
+        label { margin: 5px 0; display: block; }
+        select, input[type="text"] { width: 200px; }
+        .error { border: 2px solid red; }
+        button { margin: 10px 0; padding: 10px; }
+    </style>
+    <script>
+        let punktCounter = 0;
+
+        function addPunkt() {
+            punktCounter++;
+            const container = document.getElementById('punkty-container');
+            const block = document.createElement('div');
+            block.className = 'punkt-block';
+            block.id = `punkt_${punktCounter}`;
+            block.innerHTML = `
+                <label>Тип пункту:
+                    <select name="punkt_type_${punktCounter}" onchange="updatePunktFields(${punktCounter})">
+                        <option value="">-- Виберіть --</option>
+                        <option value="person">Особовий склад</option>
+                        <option value="chergoviy">Черговий підрозділ</option>
+                        <option value="narjad">Добовий наряд</option>
+                        <option value="roboti">Наряд на роботи</option>
+                        <option value="zbroya">Зброю і боєприпаси</option>
+                    </select>
+                </label>
+                <div class="punkt-fields" id="fields_${punktCounter}"></div>
+                <button type="button" onclick="removePunkt(${punktCounter})">Видалити пункт</button>
+            `;
+            container.appendChild(block);
+        }
+
+        function removePunkt(id) {
+            const block = document.getElementById(`punkt_${id}`);
+            if (block) block.remove();
+        }
+
+        function updatePunktFields(id) {
+            const typeSelect = document.querySelector(`select[name="punkt_type_${id}"]`);
+            const type = typeSelect ? typeSelect.value : '';
+            const fields = document.getElementById(`fields_${id}`);
+            if (!fields) return;
+            fields.innerHTML = '';
+            if (type === 'person') {
+                fields.innerHTML = `
+                    <label>Посада:
+                        <select name="posada_${id}">
+                            <option value="">-- Виберіть --</option>
+                            {% for posada in posady %}
+                                <option value="{{ posada }}">{{ posada }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Звання:
+                        <select name="zvannya_${id}">
+                            <option value="">-- Виберіть --</option>
+                            {% for zv in zvannya %}
+                                <option value="{{ zv }}">{{ zv }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Прізвище та ініціали:
+                        <input type="text" name="prizvyshche_${id}">
+                    </label>
+                `;
+            } else if (type === 'chergoviy' || type === 'narjad') {
+                fields.innerHTML = `
+                    <label>Підрозділ:
+                        <select name="pidrozdil_${id}">
+                            <option value="">-- Виберіть --</option>
+                            {% for pid in pidrozdily %}
+                                <option value="{{ pid }}">{{ pid }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                `;
+            } else if (type === 'roboti') {
+                fields.innerHTML = `
+                    <label>Підрозділ:
+                        <select name="pidrozdil_${id}">
+                            <option value="">-- Виберіть --</option>
+                            {% for pid in pidrozdily %}
+                                <option value="{{ pid }}">{{ pid }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Деталі:
+                        <input type="text" name="details_${id}">
+                    </label>
+                `;
+            } else if (type === 'zbroya') {
+                fields.innerHTML = `
+                    <label>Зброя:
+                        <select name="zbroya_${id}">
+                            <option value="">-- Виберіть --</option>
+                            {% for zb in zbroya %}
+                                <option value="{{ zb }}">{{ zb }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Кількість боєприпасів:
+                        <input type="text" name="boepripasy_${id}">
+                    </label>
+                    <label>Посадові особи:
+                        <input type="text" name="osoby_${id}">
+                    </label>
+                `;
+            }
+        }
+
+        function onSubmitForm(event) {
+            console.log("Попытка отправки формы");
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            let valid = true;
+            const requiredInputs = document.querySelectorAll('input[required]');
+            requiredInputs.forEach(input => {
+                if (!input.value) {
+                    valid = false;
+                    input.classList.add('error');
+                }
+            });
+            document.querySelectorAll('.punkt-block').forEach(block => {
+                const typeSelect = block.querySelector('select[name^="punkt_type_"]');
+                const type = typeSelect ? typeSelect.value : '';
+                if (type) {
+                    const inputs = block.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (!input.value) {
+                            valid = false;
+                            input.classList.add('error');
+                        }
+                    });
+                }
+            });
+            if (!valid) {
+                event.preventDefault();
+                alert("Заповніть усі обов'язкові поля!");
+                console.log("Форма невалидна, отправка отменена");
+            } else {
+                console.log("Форма валидна, отправляется...");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Генерація наказу</h1>
+    <a href="/manage_lists">Редагувати списки</a><br><br>
+    <form method="POST" action="/" onsubmit="onSubmitForm(event)">
+        <div class="template-text">
+            МІНІСТЕРСТВО ОБОРОНИ УКРАЇНИ<br>
+            НАКАЗ<br>
+            командира військової частини А<input type="text" name="номер_частини" required><br>
+            (по стройовій частині про склад добового наряду)<br>
+            <input type="text" name="дата_наказу" placeholder="00.00.0000" required> м. <input type="text" name="місто" required> №<input type="text" name="номер_наказу" required>-НР<br>
+            <br>
+            1. Добовий наряд на “<input type="text" name="дата_наряду" required>” <input type="text" name="місяць_наряду" required> 20<input type="text" name="рік_наряду" placeholder="25" required> року призначити в складі:<br>
+            <div id="punkty-container"></div>
+            <button type="button" onclick="addPunkt()">Додати пункт</button>
+        </div>
+        <button type="submit">Згенерувати документ</button>
+    </form>
+</body>
+</html>
