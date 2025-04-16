@@ -11,7 +11,7 @@
 <body>
     <h2>{{ column_name }}</h2>
     
-    <!-- Форма для добавления/редактирования -->
+    <!-- Форма для додавання/редагування -->
     <form method="POST">
         <input type="hidden" name="id" id="id">
         {% if table_name == 'commander' %}
@@ -25,13 +25,20 @@
                     <option value="{{ unit[0] }}">{{ unit[1] }}</option>
                 {% endfor %}
             </select>
+        {% elif table_name == 'personnel' %}
+            <label>Посада:</label>
+            <input type="text" name="position" id="position" placeholder="Введіть посаду (наприклад, солдатка)" required>
+            <label>Звання:</label>
+            <input type="text" name="rank" id="rank" placeholder="Введіть звання (наприклад, рядова)" required>
+            <label>ПІБ:</label>
+            <input type="text" name="name" id="name" placeholder="Введіть ПІБ (наприклад, Анюка)" required>
         {% else %}
             <input type="text" name="value" id="value" placeholder="Введіть значення" required>
         {% endif %}
         <button type="submit">Зберегти</button>
     </form>
 
-    <!-- Таблица с данными -->
+    <!-- Таблиця з даними -->
     <table>
         <tr>
             <th>ID</th>
@@ -39,6 +46,10 @@
                 <th>Звання</th>
                 <th>Ім’я</th>
                 <th>Назва частини</th>
+            {% elif table_name == 'personnel' %}
+                <th>Посада</th>
+                <th>Звання</th>
+                <th>ПІБ</th>
             {% else %}
                 <th>{{ column_name }}</th>
             {% endif %}
@@ -51,11 +62,15 @@
                 <td>{{ row[1] }}</td>
                 <td>{{ row[2] }}</td>
                 <td>{{ row[3] }}</td>
+            {% elif table_name == 'personnel' %}
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
             {% else %}
                 <td>{{ row[1] }}</td>
             {% endif %}
             <td>
-                <button onclick="editRow({{ row[0] }}{% if table_name == 'commander' %}, '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}'{% else %}, '{{ row[1] }}'{% endif %})">Редагувати</button>
+                <button onclick="editRow({{ row[0] }}{% if table_name == 'commander' %}, '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}'{% elif table_name == 'personnel' %}, '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}'{% else %}, '{{ row[1] }}'{% endif %})">Редагувати</button>
                 <a href="/delete/{{ table_name }}/{{ row[0] }}" onclick="return confirm('Видалити?')">Видалити</a>
             </td>
         </tr>
@@ -65,12 +80,16 @@
     <a href="/" class="button">Назад</a>
 
     <script>
-    function editRow(id{% if table_name == 'commander' %}, rank, name, unit_name{% else %}, value{% endif %}) {
+    function editRow(id{% if table_name == 'commander' %}, rank, name, unit_id{% elif table_name == 'personnel' %}, position, rank, name{% else %}, value{% endif %}) {
         document.getElementById('id').value = id;
         {% if table_name == 'commander' %}
+            document.getElementBy script.getElementById('rank').value = rank;
+            document.getElementById('name').value = name;
+            document.getElementById('unit_id').value = unit_id;
+        {% elif table_name == 'personnel' %}
+            document.getElementById('position').value = position;
             document.getElementById('rank').value = rank;
             document.getElementById('name').value = name;
-            document.getElementById('unit_id').value = unit_name;
         {% else %}
             document.getElementById('value').value = value;
         {% endif %}

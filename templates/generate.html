@@ -1,104 +1,294 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
-    <title>Генерація документа</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генерація наказу</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .button { padding: 5px 10px; margin: 5px; }
-        label { display: block; margin: 5px 0; }
-        .item { margin-bottom: 10px; }
+        .item-container {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .item-header {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .nested-item {
+            margin-top: 10px;
+        }
+        .sub-item {
+            margin-left: 30px;
+            padding: 10px;
+            border-left: 2px solid #007bff;
+            margin-top: 5px;
+        }
+        .sub-sub-item {
+            margin-left: 60px;
+            padding: 5px;
+            border-left: 1px solid #28a745;
+            margin-top: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+        .hidden {
+            display: none;
+        }
+        select, input[type="text"] {
+            margin: 5px;
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        label {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
-    <h2>Генерація наказу</h2>
-    <form method="POST">
-        <label>Дата: <input type="text" name="date" placeholder="“___” _________ 20___" required></label>
-        <label>Номер наказу: <input type="text" name="order_number" placeholder="№____-НР" required></label>
-        
-        <div class="item">
-            <label>Військова частина:</label>
-            <select name="unit_id" required>
-                {% for unit in unit_data %}
-                    <option value="{{ unit[0] }}">{{ unit[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    <h1>Генерація наказу</h1>
+    <a href="/">Повернутися на головну</a>
+    <form method="POST" action="/generate">
+        <label for="date">Дата:</label>
+        <input type="text" id="date" name="date" required><br><br>
 
-        <h3>Включити пункти:</h3>
-        <div class="item">
-            <label><input type="checkbox" name="duty_officer" checked> Черговий частини</label>
-            <select name="duty_officer_id">
-                {% for item in position_rank_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
+        <label for="order_number">Номер наказу:</label>
+        <input type="text" id="order_number" name="order_number" required><br><br>
+
+        <label for="unit_id">Військова частина:</label>
+        <select id="unit_id" name="unit_id" required>
+            {% for unit in unit_data %}
+                <option value="{{ unit[0] }}">{{ unit[1] }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="commander_id">Командир:</label>
+        <select id="commander_id" name="commander_id" required>
+            {% for commander in commander_data %}
+                <option value="{{ commander[0] }}">{{ commander[1] }} {{ commander[2] }} ({{ commander[3] }})</option>
+            {% endfor %}
+        </select><br><br>
+
+        <h2>Пункти наказу</h2>
+        <div id="items-container">
+            <!-- Тут будуть динамічно додаватися пункти -->
         </div>
-        <div class="item">
-            <label><input type="checkbox" name="assistant_duty" checked> Помічник чергового частини</label>
-            <select name="assistant_duty_id">
-                {% for item in position_rank_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="guard_chief" checked> Начальник варти</label>
-            <select name="guard_chief_id">
-                {% for item in position_rank_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="park_duty" checked> Черговий парку</label>
-            <select name="park_duty_id">
-                {% for item in position_rank_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="duty_subunit" checked> Черговий підрозділ</label>
-            <select name="duty_subunit_id">
-                {% for item in subunit_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="subunit_duty" checked> Добовий наряд від підрозділу</label>
-            <select name="subunit_duty_id">
-                {% for item in subunit_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="work_duty" checked> Наряд на роботи</label>
-            <select name="work_duty_id">
-                {% for item in work_duration_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label><input type="checkbox" name="weapon_ammo" checked> Зброя і боєприпаси</label>
-            <select name="weapon_ammo_id">
-                {% for item in weapon_ammo_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="item">
-            <label>Командир:</label>
-            <select name="commander_id">
-                {% for item in commander_data %}
-                    <option value="{{ item[0] }}">{{ item[1] }} {{ item[2] }} (Частина: {{ item[3] }})</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <button type="submit" class="button">Сгенерувати</button>
+        <button type="button" onclick="addItem()">Додати пункт</button><br><br>
+
+        <input type="submit" value="Згенерувати наказ">
     </form>
-    <a href="/" class="button">Назад</a>
+
+    <script>
+        let itemCounter = 0;
+
+        function addItem() {
+            itemCounter++;
+            const container = document.getElementById('items-container');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item-container';
+            itemDiv.id = `item-${itemCounter}`;
+            itemDiv.innerHTML = `
+                <div class="item-header">Пункт ${itemCounter}:</div>
+                <select name="item-${itemCounter}-select" onchange="toggleItemText(${itemCounter}, this.value)">
+                    <option value="">-- Виберіть пункт --</option>
+                    {% for item in items_data %}
+                        <option value="{{ item[0] }}">{{ item[1] }}</option>
+                    {% endfor %}
+                    <option value="new">Створити новий пункт</option>
+                </select>
+                <input type="text" name="item-${itemCounter}-text" id="item-text-${itemCounter}" class="hidden" placeholder="Текст пункту">
+                <button type="button" onclick="addSubItem(${itemCounter})">Додати підпункт</button>
+                <button type="button" class="remove-btn" onclick="removeItem(${itemCounter})">Видалити пункт</button>
+                <div id="sub-items-${itemCounter}" class="nested-item"></div>
+            `;
+            container.appendChild(itemDiv);
+        }
+
+        function toggleItemText(itemId, value) {
+            const textInput = document.getElementById(`item-text-${itemId}`);
+            if (value === 'new') {
+                textInput.classList.remove('hidden');
+                textInput.required = true;
+            } else {
+                textInput.classList.add('hidden');
+                textInput.required = false;
+            }
+        }
+
+        function addSubItem(itemId) {
+            const subCounter = document.querySelectorAll(`#sub-items-${itemId} .sub-item`).length + 1;
+            const itemSelect = document.querySelector(`select[name="item-${itemId}-select"]`).value;
+            if (!itemSelect) {
+                alert("Спочатку виберіть або створіть пункт!");
+                return;
+            }
+
+            const subContainer = document.getElementById(`sub-items-${itemId}`);
+            const subDiv = document.createElement('div');
+            subDiv.className = 'sub-item';
+            subDiv.id = `sub-item-${itemId}-${subCounter}`;
+            subDiv.innerHTML = `
+                <label>Підпункт ${itemId}.${subCounter}:</label>
+                <select name="sub-item-${itemId}-${subCounter}-select" onchange="toggleSubItemText(${itemId}, ${subCounter}, this.value); loadSubSubItems(${itemId}, ${subCounter}, this.value)">
+                    <option value="">-- Виберіть підпункт --</option>
+                    <option value="new">Створити новий підпункт</option>
+                </select>
+                <input type="text" name="sub-item-${itemId}-${subCounter}-text" id="sub-item-text-${itemId}-${subCounter}" class="hidden" placeholder="Текст підпункту">
+                <select name="sub-item-${itemId}-${subCounter}-person">
+                    <option value="">-- Виберіть особу --</option>
+                    {% for person in personnel_data %}
+                        {% set position = person[1] %}
+                        {% set short_position = position[:10] + "…" if position|length > 10 else position %}
+                        <option value="{{ person[0] }}">{{ short_position }} {{ person[2] }} {{ person[3] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" onclick="addSubSubItem(${itemId}, ${subCounter})">Додати підпункт підпункту</button>
+                <button type="button" class="remove-btn" onclick="removeSubItem(${itemId}, ${subCounter})">Видалити підпункт</button>
+                <div id="sub-sub-items-${itemId}-${subCounter}" class="nested-item"></div>
+            `;
+            subContainer.appendChild(subDiv);
+
+            // Завантажуємо підпункти для вибраного пункту
+            if (itemSelect !== 'new') {
+                fetch(`/get_sub_items/${itemSelect}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const subSelect = document.querySelector(`select[name="sub-item-${itemId}-${subCounter}-select"]`);
+                        data.forEach(subItem => {
+                            const option = document.createElement('option');
+                            option.value = subItem[0];
+                            option.text = subItem[1];
+                            subSelect.appendChild(option);
+                        });
+                    });
+            }
+        }
+
+        function toggleSubItemText(itemId, subItemId, value) {
+            const textInput = document.getElementById(`sub-item-text-${itemId}-${subItemId}`);
+            if (value === 'new') {
+                textInput.classList.remove('hidden');
+                textInput.required = true;
+            } else {
+                textInput.classList.add('hidden');
+                textInput.required = false;
+            }
+        }
+
+        function loadSubSubItems(itemId, subItemId, value) {
+            const subSubContainer = document.getElementById(`sub-sub-items-${itemId}-${subItemId}`);
+            subSubContainer.innerHTML = ''; // Очищаємо попередні підпункти підпунктів
+
+            if (value && value !== 'new') {
+                fetch(`/get_sub_sub_items/${value}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const subSubSelects = document.querySelectorAll(`#sub-sub-items-${itemId}-${subItemId} select[name^="sub-sub-item-${itemId}-${subItemId}-"]`);
+                        subSubSelects.forEach(select => {
+                            data.forEach(subSubItem => {
+                                const option = document.createElement('option');
+                                option.value = subSubItem[0];
+                                option.text = subSubItem[1];
+                                select.appendChild(option.cloneNode(true));
+                            });
+                        });
+                    });
+            }
+        }
+
+        function addSubSubItem(itemId, subItemId) {
+            const subSubCounter = document.querySelectorAll(`#sub-sub-items-${itemId}-${subItemId} .sub-sub-item`).length + 1;
+            const subItemSelect = document.querySelector(`select[name="sub-item-${itemId}-${subItemId}-select"]`).value;
+            if (!subItemSelect) {
+                alert("Спочатку виберіть або створіть підпункт!");
+                return;
+            }
+
+            const subSubContainer = document.getElementById(`sub-sub-items-${itemId}-${subItemId}`);
+            const subSubDiv = document.createElement('div');
+            subSubDiv.className = 'sub-sub-item';
+            subSubDiv.id = `sub-sub-item-${itemId}-${subItemId}-${subSubCounter}`;
+            subSubDiv.innerHTML = `
+                <label>Підпункт ${itemId}.${subItemId}.${subSubCounter}:</label>
+                <select name="sub-sub-item-${itemId}-${subItemId}-${subSubCounter}-select" onchange="toggleSubSubItemText(${itemId}, ${subItemId}, ${subSubCounter}, this.value)">
+                    <option value="">-- Виберіть підпункт підпункту --</option>
+                    <option value="new">Створити новий підпункт підпункту</option>
+                </select>
+                <input type="text" name="sub-sub-item-${itemId}-${subItemId}-${subSubCounter}-text" id="sub-sub-item-text-${itemId}-${subItemId}-${subSubCounter}" class="hidden" placeholder="Текст підпункту підпункту">
+                <select name="sub-sub-item-${itemId}-${subItemId}-${subSubCounter}-person">
+                    <option value="">-- Виберіть особу --</option>
+                    {% for person in personnel_data %}
+                        {% set position = person[1] %}
+                        {% set short_position = position[:10] + "…" if position|length > 10 else position %}
+                        <option value="{{ person[0] }}">{{ short_position }} {{ person[2] }} {{ person[3] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="remove-btn" onclick="removeSubSubItem(${itemId}, ${subItemId}, ${subSubCounter})">Видалити</button>
+            `;
+            subSubContainer.appendChild(subSubDiv);
+
+            // Завантажуємо підпункти підпунктів
+            if (subItemSelect !== 'new') {
+                fetch(`/get_sub_sub_items/${subItemSelect}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const subSubSelect = document.querySelector(`select[name="sub-sub-item-${itemId}-${subItemId}-${subSubCounter}-select"]`);
+                        data.forEach(subSubItem => {
+                            const option = document.createElement('option');
+                            option.value = subSubItem[0];
+                            option.text = subSubItem[1];
+                            subSubSelect.appendChild(option);
+                        });
+                    });
+            }
+        }
+
+        function toggleSubSubItemText(itemId, subItemId, subSubItemId, value) {
+            const textInput = document.getElementById(`sub-sub-item-text-${itemId}-${subItemId}-${subSubItemId}`);
+            if (value === 'new') {
+                textInput.classList.remove('hidden');
+                textInput.required = true;
+            } else {
+                textInput.classList.add('hidden');
+                textInput.required = false;
+            }
+        }
+
+        function removeItem(itemId) {
+            const itemDiv = document.getElementById(`item-${itemId}`);
+            itemDiv.remove();
+        }
+
+        function removeSubItem(itemId, subItemId) {
+            const subItemDiv = document.getElementById(`sub-item-${itemId}-${subItemId}`);
+            subItemDiv.remove();
+        }
+
+        function removeSubSubItem(itemId, subItemId, subSubItemId) {
+            const subSubItemDiv = document.getElementById(`sub-sub-item-${itemId}-${subItemId}-${subSubItemId}`);
+            subSubItemDiv.remove();
+        }
+    </script>
 </body>
 </html>
