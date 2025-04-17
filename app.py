@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, send_file, jsonify
 from io import BytesIO
 import re
 import logging
+from docx.shared import Cm  # Додаємо для роботи з відступами в сантиметрах
 
 # Налаштування логування для дебагу
 logging.basicConfig(level=logging.DEBUG)
@@ -15,6 +16,46 @@ app = Flask(__name__)
 def connect_db():
     conn = sqlite3.connect('military_data.db')
     return conn
+
+# Міграція таблиці personnel для видалення unit_id
+def migrate_personnel_table():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    # Перевіряємо, чи існує стовпець unit_id у таблиці personnel
+    cursor.execute("PRAGMA table_info(personnel)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'unit_id' in columns:
+        logger.debug("Виконуємо міграцію таблиці personnel: видаляємо стовпець unit_id")
+
+        # 1. Створюємо нову таблицю personnel без unit_id
+        cursor.execute('''
+            CREATE TABLE personnel_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                position TEXT NOT NULL,
+                rank TEXT NOT NULL,
+                name TEXT NOT NULL
+            )
+        ''')
+
+        # 2. Переносимо дані зі старої таблиці в нову (без unit_id)
+        cursor.execute('''
+            INSERT INTO personnel_new (id, position, rank, name)
+            SELECT id, position, rank, name FROM personnel
+        ''')
+
+        # 3. Видаляємо стару таблицю
+        cursor.execute('DROP TABLE personnel')
+
+        # 4. Перейменовуємо нову таблицю на personnel
+        cursor.execute('ALTER TABLE personnel_new RENAME TO personnel')
+
+        logger.debug("Міграція таблиці personnel завершена")
+    else:
+        logger.debug("Міграція таблиці personnel не потрібна")
+
+    conn.commit()
+    conn.close()
 
 # Створення таблиць
 def create_tables():
@@ -50,7 +91,7 @@ def create_tables():
             )
         ''')
 
-    # Таблиця для персоналу (посада, звання, ПІБ) – прибираємо unit_id
+    # Таблиця для персоналу (посада, звання, ПІБ) – без unit_id
     cursor.execute("PRAGMA table_info(personnel)")
     columns = [col[1] for col in cursor.fetchall()]
     if not columns or 'position' not in columns:
@@ -374,12 +415,14 @@ def create_order_document(date, order_number, unit_id, commander_id, items):
     # Видаляємо плейсхолдер {items}
     doc.paragraphs[insert_index].clear()
 
-    # Додаємо пункти та підпункти
+    # Додаємо пункти та підпункти з відступами
     item_number = 1
     for item in items:
         # Додаємо пункт (наприклад, 1.)
         item_text = item['text']
         new_para = doc.add_paragraph(f"{item_number}. {item_text}")
+        new_para.paragraph_format.first_line_indent = Cm(1.25)  # Відступ першого рядка 1.25 см
+        new_para.paragraph_format.left_indent = Cm(0)  # Загальний відступ 0
         doc.paragraphs[insert_index]._element.getparent().insert(insert_index, new_para._element)
         insert_index += 1
 
@@ -393,6 +436,8 @@ def create_order_document(date, order_number, unit_id, commander_id, items):
             if person:
                 full_text += f" – {person}"
             new_sub_para = doc.add_paragraph(full_text)
+            new_sub_para.paragraph_format.first_line_indent = Cm(1.25)  # Відступ першого рядка 1.25 см
+            new_sub_para.paragraph_format.left_indent = Cm(0)  # Загальний відступ 0
             doc.paragraphs[insert_index]._element.getparent().insert(insert_index, new_sub_para._element)
             insert_index += 1
 
@@ -406,6 +451,8 @@ def create_order_document(date, order_number, unit_id, commander_id, items):
                 if sub_person:
                     sub_full_text += f" – {sub_person}"
                 new_sub_sub_para = doc.add_paragraph(sub_full_text)
+                new_sub_sub_para.paragraph_format.first_line_indent = Cm(1.25)  # Відступ першого рядка 1.25 см
+                new_sub_sub_para.paragraph_format.left_indent = Cm(0)  # Загальний відступ 0
                 doc.paragraphs[insert_index]._element.getparent().insert(insert_index, new_sub_sub_para._element)
                 insert_index += 1
                 sub_sub_item_number += 1
@@ -594,4 +641,5 @@ def generate():
 # Ініціалізація
 if __name__ == '__main__':
     create_tables()
+    migrate_personnel_table()  # Додаємо виклик міграції
     app.run(debug=True, host='0.0.0.0', port=5000)
